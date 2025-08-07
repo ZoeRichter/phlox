@@ -1,0 +1,154 @@
+% --- model of xe-100 core
+
+% --- for triso particle, need fuel core, buffer, pyro-carbon. and silicon carbide mats
+
+/************************
+ * Material definitions *
+ ************************/
+
+include "./y12_materials.inc"
+
+mix p0blend
+fuel0   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+mix p1blend
+fuel1   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+mix p2blend
+fuel2   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+mix p3blend
+fuel3   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+mix p4blend
+fuel4   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+mix p5blend
+fuel5   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+mix p6blend
+fuel6   0.01105
+pyroc   0.03726
+sic     0.01613
+graph   0.9356
+
+
+therm grph grj3.18t
+
+ /************************
+  * Geometry definitions *
+  ************************/
+
+particle p0part
+p0blend    2.5
+graph      3.0
+void
+
+particle p1part
+p1blend    2.5
+graph      3.0
+void
+
+particle p2part
+p2blend    2.5
+graph      3.0
+void
+
+particle p3part
+p3blend    2.5
+graph      3.0
+void
+
+particle p4part
+p4blend    2.5
+graph      3.0
+void
+
+particle p5part
+p5blend    2.5
+graph      3.0
+void
+
+particle p6part
+p6blend    2.5
+graph      3.0
+void
+
+% --- based on HGTR tutorial from serpent wiki
+% --- describing core
+
+surf corebg inf
+cell coolant 3 cool -corebg
+pbed pebs 3 "shuffled-pbbls.inp" pow
+
+% --- inner cylinder, radius of 124 cm, centered at (x,y,z) = (0,0,0), height 966 cm
+surf innercyl cyl 0.0 0.0 124 -483 483
+% --- outer reflector shell
+surf outercyl cyl 0.0 0.0 216 -575 575
+
+cell fuelpeb0 0 fill pebs  -innercyl
+cell reflector 0 graph     innercyl -outercyl
+cell outwith 0 outside   outercyl
+
+surf albsurf hexxprism 0.0 0.0 124 -483 483
+set alb 0 albsurf 1
+
+%det jin ds innercyl -1
+%det jout ds innercyl 1
+
+surf inside_outer cyl 0.0 0.0 215 -574 574
+% det jout_at_outer ds inside_outer 1
+
+
+ene twogroup 4 default2
+ene multigroup 4 scale238
+ene lethargygroup 3 250 1.00e-11 2.00e1
+
+det core_flux de multigroup
+det core_flux_lethargy de multigroup dt -3
+det core_flux_custom de lethargygroup
+
+%include "./branches.inc"
+
+% Set Cross section Libraries 
+set acelib "/home/zoe/serpent-2.32/xsdata/endfb7/sss_endfb7u.xsdata"
+set declib "/home/zoe/serpent-2.32/xsdata/endfb7/sss_endfb7.dec"
+set nfylib "/home/zoe/serpent-2.32/xsdata/endfb7/sss_endfb7.nfy"
+
+% run parameters
+
+set pop 50000 100 50
+
+%set fpcut 1E-10
+set fum defaultmg 2 1 1E-7
+set power 2E8
+set bc 1
+set opti 1
+
+%plot 33 8000 8000
+%plot 33 9000 9000 0.0 -15 15 -15 15
+%plot 13 864 2300
+
+mesh 3 1000 1000
+mesh 1 1000 1000
+
+% Generate 1 group cross sections
+include "./xs_nuclides.inc"
